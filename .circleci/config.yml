@@ -107,7 +107,7 @@ workflows:
             only:
               - develop
               - staging
-              - master
+              - main
         build_and_deploy:
       - deploy-to-aws-cloudfront:
         requires:
@@ -117,4 +117,4 @@ workflows:
             only:
               - develop
               - staging
-              - master
+              - main
