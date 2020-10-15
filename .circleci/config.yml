@@ -11,23 +11,23 @@ jobs:
           name: Show current branch
           command: echo ${CURRENT_BRANCH}
       - restore_cache:
-          key: 
+          key:
             - app-{{ checksum "package.json"}}
             - app-
-      -run: 
+      - run:
         name: Install dependencies
-        command: npm install      
+        command: npm install
       - save_cache:
           paths:
             - node_modules
-          key: app-{{ checksum "package.json"}}              
+          key: app-{{ checksum "package.json"}}
   deploy-to-aws-s3:
     docker:
       - image: circleci/node:13.12.0
     working_directory: ~/repo
     steps:
       - checkout
-      - run: 
+      - run:
           name: Show current branch
           command: echo ${CURRENT_BRANCH}
       - run:
@@ -37,14 +37,14 @@ jobs:
             sudo apt-get -y -qq update
             sudo apt-get install -y awscli
             sudo apt-get install -y python-pip python-dev build-essential
-      - run: 
+      - run:
           name: Build project
           command: |
             npm install
             npm run build
             cd build
             zip ../build.zip -r * .[^.]*
-            echo "Build successful" 
+            echo "Build successful"
       - run:
           name: Deploy to AWS S3
           command: |
@@ -56,14 +56,14 @@ jobs:
               aws --region ${AWS_REGION} s3 sync ~/repo/build s3://{AWS_BUCKET_STAGING} --delete
             else
               aws --region ${AWS_REGION} s3 sync ~/repo/build s3://{AWS_BUCKET_DEV} --delete
-            fi 
+            fi
   deploy-to-aws-cloudfront:
     docker:
       - image: circleci/node:13.12.0
     working_directory: ~/repo
     steps:
       - checkout
-      - run: 
+      - run:
           name: Show current branch
           command: echo ${CURRENT_BRANCH}
       - run:
@@ -73,14 +73,14 @@ jobs:
             sudo apt-get -y -qq update
             sudo apt-get install -y awscli
             sudo apt-get install -y python-pip python-dev build-essential
-      - run: 
+      - run:
           name: Build project
           command: |
             npm install
             npm run build
             cd build
             zip ../build.zip -r * .[^.]*
-            echo "Build successful" 
+            echo "Build successful"
       - run:
           name: Deploy to AWS Cloudfront
           command: |
@@ -93,13 +93,13 @@ jobs:
               aws cloudfront create-invalidation --distribution-id {STAGING_DISTRIBUTION_ID} --paths /\*
             else
               aws cloudfront create-invalidation --distribution-id {DEV_DISTRIBUTION_ID} --paths /\*
-            fi 
+            fi
 workflows:
   build_and_deploy:
     jobs:
       - build
       - deploy-to-aws-s3:
-        requires: 
+        requires:
           - build
         filters:
           branches:
@@ -109,11 +109,11 @@ workflows:
               - master
         build_and_deploy:
       - deploy-to-aws-cloudfront:
-        requires: 
+        requires:
           - deploy-to-aws-s3
         filters:
           branches:
             only:
               - develop
               - staging
-              - master    
+              - master
